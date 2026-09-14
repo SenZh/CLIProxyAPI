@@ -40,14 +40,23 @@ func TestConvertClaudeRequestToInteractionsMapsToolUseAndResult(t *testing.T) {
 	if got := gjson.GetBytes(out, "input.0.type").String(); got != "function_call" {
 		t.Fatalf("input.0.type = %q, want function_call. Output: %s", got, string(out))
 	}
-	if got := gjson.GetBytes(out, "input.0.call_id").String(); got != "toolu_1" {
-		t.Fatalf("call_id = %q, want toolu_1. Output: %s", got, string(out))
+	if got := gjson.GetBytes(out, "input.0.id").String(); got != "toolu_1" {
+		t.Fatalf("id = %q, want toolu_1. Output: %s", got, string(out))
 	}
-	if gjson.GetBytes(out, "input.0.id").Exists() {
-		t.Fatalf("function_call id should be omitted. Output: %s", string(out))
+	if gjson.GetBytes(out, "input.0.call_id").Exists() {
+		t.Fatalf("function_call should not have call_id parameter. Output: %s", string(out))
 	}
 	if got := gjson.GetBytes(out, "input.1.type").String(); got != "function_result" {
 		t.Fatalf("input.1.type = %q, want function_result. Output: %s", got, string(out))
+	}
+	if got := gjson.GetBytes(out, "input.1.name").String(); got != "get_weather" {
+		t.Fatalf("name = %q, want get_weather. Output: %s", got, string(out))
+	}
+	if got := gjson.GetBytes(out, "input.1.call_id").String(); got != "toolu_1" {
+		t.Fatalf("call_id = %q, want toolu_1. Output: %s", got, string(out))
+	}
+	if gjson.GetBytes(out, "input.1.id").Exists() {
+		t.Fatalf("function_result should not have id parameter. Output: %s", string(out))
 	}
 	if got := gjson.GetBytes(out, "input.1.result").String(); got != "晴" {
 		t.Fatalf("result = %q, want 晴. Output: %s", got, string(out))
@@ -57,6 +66,20 @@ func TestConvertClaudeRequestToInteractionsMapsToolUseAndResult(t *testing.T) {
 	}
 	if got := gjson.GetBytes(out, "input.1.call_id").String(); got != "toolu_1" {
 		t.Fatalf("result call_id = %q, want toolu_1. Output: %s", got, string(out))
+	}
+}
+
+func TestConvertClaudeRequestToInteractionsPropagatesIsError(t *testing.T) {
+	raw := []byte(`{"model":"gemini-3.1-flash-lite","messages":[{"role":"user","content":[{"type":"tool_result","tool_use_id":"toolu_err","content":"command failed","is_error":true}]}]}`)
+	out := ConvertClaudeRequestToInteractions("gemini-3.1-flash-lite", raw, false)
+	if !gjson.GetBytes(out, "input.0.is_error").Bool() {
+		t.Fatalf("expected input.0.is_error = true. Output: %s", string(out))
+	}
+	if got := gjson.GetBytes(out, "input.0.call_id").String(); got != "toolu_err" {
+		t.Fatalf("call_id = %q, want toolu_err. Output: %s", got, string(out))
+	}
+	if gjson.GetBytes(out, "input.0.id").Exists() {
+		t.Fatalf("input.0.id must not exist on function_result. Output: %s", string(out))
 	}
 }
 

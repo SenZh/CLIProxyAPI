@@ -340,7 +340,6 @@ func openAIToolCallToInteractionsStep(toolCall gjson.Result, forAntigravity bool
 	step := []byte(`{"type":"function_call","name":"","arguments":{}}`)
 	if id := toolCall.Get("id").String(); id != "" {
 		step, _ = sjson.SetBytes(step, "id", id)
-		step, _ = sjson.SetBytes(step, "call_id", id)
 	}
 	name := function.Get("name").String()
 	if forAntigravity {

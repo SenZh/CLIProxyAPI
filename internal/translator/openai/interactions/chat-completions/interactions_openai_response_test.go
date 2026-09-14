@@ -80,8 +80,11 @@ func TestConvertOpenAIResponseToInteractionsNonStreamDirectToolCall(t *testing.T
 	if got := gjson.GetBytes(out, "steps.0.type").String(); got != "function_call" {
 		t.Fatalf("step type = %q, want function_call. Output: %s", got, string(out))
 	}
-	if got := gjson.GetBytes(out, "steps.0.call_id").String(); got != "call_1" {
-		t.Fatalf("call_id = %q, want call_1. Output: %s", got, string(out))
+	if got := gjson.GetBytes(out, "steps.0.id").String(); got != "call_1" {
+		t.Fatalf("id = %q, want call_1. Output: %s", got, string(out))
+	}
+	if gjson.GetBytes(out, "steps.0.call_id").Exists() {
+		t.Fatalf("steps.0 should not have call_id parameter. Output: %s", string(out))
 	}
 	if got := gjson.GetBytes(out, "steps.0.arguments.q").String(); got != "x" {
 		t.Fatalf("arguments.q = %q, want x. Output: %s", got, string(out))
